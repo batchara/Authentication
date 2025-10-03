@@ -34,7 +34,7 @@ public class EmailsService {
     ) throws MessagingException {
         String templateName;
         if(emailTemplate==null){
-            templateName = "emailTemplate";
+            templateName = "activate_account";
         }else{
             templateName = emailTemplate.name();
         }

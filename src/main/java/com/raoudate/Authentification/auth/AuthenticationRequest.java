@@ -7,23 +7,13 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDate;
+import org.springframework.context.annotation.Bean;
 
 @Getter
 @Setter
 @Builder
 
-public class ResgistrationRequest {
-
-    @NotEmpty(message = "firstname is required")
-    @NotBlank(message = "firstname is required")
-    private String firstname;
-
-    @NotEmpty(message = "lastname is required")
-    @NotBlank(message = "lastname is required")
-    private String lastname;
-
+public class AuthenticationRequest {
     @NotEmpty(message = "password is required")
     @NotBlank(message = "password is required")
     @Size(min = 8, message = "password must be at least 8 characters long")

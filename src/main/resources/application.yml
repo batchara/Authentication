@@ -56,7 +56,7 @@ spring:
 application:
   security:
     jwt:
-      secret-key: rararaoudate181201batcha20djeri15
+      secret-key: cetteCleSecreteDoitFaireAuMoins32Caracteres!!
       expiration: 8640000
 
   mailing:
