@@ -121,10 +121,11 @@ public class AuthenticationService {
                 .token(jwtToken).build();
     }
 
-    @Transactional // je peux supprimer et tester le post
-
+    @Transactional
     public void activateAcount(String token) throws MessagingException {
         Token saveToken = tokenRepository.findByToken(token)
+                //todo exception has to be defined
+
                 .orElseThrow(() -> new RuntimeException("Invalid Token"));
         if(LocalDateTime.now().isAfter(saveToken.getExpiresAt())){
             sendValidationEmail(saveToken.getUser());
@@ -140,4 +141,6 @@ public class AuthenticationService {
         tokenRepository.save(saveToken);
 
     }
+
+
 }

@@ -11,8 +11,8 @@
 	<groupId>com.raoudate</groupId>
 	<artifactId>Authentification</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Authentification</name>
-	<description> AuthentificationSpring</description>
+	<name>Authentication</name>
+	<description> AuthenticationSpring</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -75,7 +75,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.1.0</version>
+			<version>2.7.0</version>
 		</dependency>
 
 		<!--<dependency>
