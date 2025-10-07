@@ -2,6 +2,8 @@ package com.raoudate.Authentification.auth;
 
 import com.raoudate.Authentification.email.EmailTemplateName;
 import com.raoudate.Authentification.email.EmailsService;
+import com.raoudate.Authentification.handler.InvalidTokenException;
+import com.raoudate.Authentification.handler.TokenExpiredException;
 import com.raoudate.Authentification.repository.RoleRepository;
 import com.raoudate.Authentification.repository.TokenRepository;
 import com.raoudate.Authentification.repository.UserRepository;
@@ -9,7 +11,6 @@ import com.raoudate.Authentification.security.JwtService;
 import com.raoudate.Authentification.user.Token;
 import com.raoudate.Authentification.user.User;
 import jakarta.mail.MessagingException;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -56,14 +60,17 @@ public class AuthenticationService {
 
         userRepository.save(user);
 
-        sendValidationEmail(user);
+        sendValidationEmail(user, null);
 
 
     }
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    void sendValidationEmail(User user , Token oldToken) throws MessagingException {
 
-    private void sendValidationEmail(User user) throws MessagingException {
+        if (oldToken != null) {
+        tokenRepository.delete(oldToken);
+    }
         var newToken = generateAndeSaveActivationToken(user) ;
-                //envoin des mails
 
         emailsService.sendEmail(
                 user.getEmail(),
@@ -121,26 +128,42 @@ public class AuthenticationService {
                 .token(jwtToken).build();
     }
 
-    @Transactional
-    public void activateAcount(String token) throws MessagingException {
+    @Transactional(noRollbackFor = TokenExpiredException.class)
+    public void activateAcount(String email, String token) throws MessagingException {
+        var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
         Token saveToken = tokenRepository.findByToken(token)
-                //todo exception has to be defined
+                .filter(t -> t.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> new InvalidTokenException("Invalid Token"));
 
-                .orElseThrow(() -> new RuntimeException("Invalid Token"));
-        if(LocalDateTime.now().isAfter(saveToken.getExpiresAt())){
-            sendValidationEmail(saveToken.getUser());
-            throw new RuntimeException("Token expired . A new token has been sent to the same email");
-
+        if (LocalDateTime.now().isAfter(saveToken.getExpiresAt())) {
+                sendValidationEmail(user, saveToken);
+                throw new TokenExpiredException("Token expired. A new token has been sent to the same email");
         }
 
-        var user = userRepository.findById(saveToken.getUser().getId())
-                .orElseThrow(()-> new UsernameNotFoundException("User not found"));
         user.setEnabled(true);
         userRepository.save(user);
         saveToken.setValidateAt(LocalDateTime.now());
         tokenRepository.save(saveToken);
+        tokenRepository.delete(saveToken);
+
+        sendActivationConfirmationEmail(user);
 
     }
 
+    private void sendActivationConfirmationEmail(User user) throws MessagingException {
+        String loginUrl = "http://localhost:8080/login";
 
+
+            emailsService.sendEmail(
+                    user.getEmail(),
+                    user.fullName(),
+                    EmailTemplateName.CONFIRM_ACCOUNT,
+                    loginUrl,
+                    null,
+                    "Your account has been activated!"
+            );
+
+    }
 }

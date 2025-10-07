@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.raoudate.Authentification.auth.MessageResponse;
 
 @RestController
 @RequestMapping("/auth")
@@ -19,25 +20,26 @@ public class AuthentificationController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public ResponseEntity<?> register(
+    public ResponseEntity<MessageResponse> register(
 
             @RequestBody @Valid RegistrationRequest request
     ) throws MessagingException {
         service.register(request);
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.accepted().body(new MessageResponse("Inscription réussie ! Vérifiez votre email pour activer votre compte."));
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<AuthenticationResponse> authenticate(
-            @RequestBody @Valid AuthenticationRequest request
-    ){
-        return ResponseEntity.ok(service.authenticate(request));
+    public ResponseEntity<MessageResponse> authenticate(@RequestBody @Valid AuthenticationRequest request){
+        AuthenticationResponse response = service.authenticate(request);
+        return ResponseEntity.ok(new MessageResponse("Authentification réussie ! Token : " + response.getToken()));
     }
 
     @GetMapping("/activate-account")
-    public void confirm(
+    public ResponseEntity<MessageResponse> confirm(
+            @RequestParam String email,
             @RequestParam String token) throws MessagingException {
-        service.activateAcount(token);
+        service.activateAcount(email,token);
+        return ResponseEntity.ok(new MessageResponse("Votre compte a été activé avec succès !"));
     }
 
 

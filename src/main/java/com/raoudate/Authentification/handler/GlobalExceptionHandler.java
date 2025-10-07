@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.raoudate.Authentification.handler.BusinessErrorCode.BAD_CREDENTIALS;
+import static com.raoudate.Authentification.handler.BusinessErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 
 @RestControllerAdvice
@@ -113,6 +113,31 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ExceptionResponse> handleException(InvalidTokenException exp) {
+        return ResponseEntity
+                .status(TOKEN_INVALID.getHttpStatus())
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(TOKEN_INVALID.getCode() + "")
+                                .businessErrorDescription(TOKEN_INVALID.getDescription())
+                                .error(exp.getMessage())
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ExceptionResponse> handleException(TokenExpiredException exp) {
+        return ResponseEntity
+                .status(TOKEN_EXPIRED.getHttpStatus())
+                .body(
+                        ExceptionResponse.builder()
+                                .businessErrorCode(TOKEN_EXPIRED.getCode() + "")
+                                .businessErrorDescription(TOKEN_EXPIRED.getDescription())
+                                .error(exp.getMessage())
+                                .build()
+                );
+    }
 
 
 

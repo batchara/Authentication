@@ -49,6 +49,7 @@ public class EmailsService {
         properties.put("username", username);
         properties.put("confirmationUrl", confirmationUrl);
         properties.put("activationCode", activationCode);
+        properties.put("loginUrl", confirmationUrl);
 
         Context context = new Context();
         context.setVariables(properties);
